@@ -1,0 +1,107 @@
+----------okio------------------------
+
+* complements java.io.* and java.nio.*
+* Source and Sink to move data
+		 
+		interface Source{
+			long read(BUffer sink, long byteCount);
+			Timeout timeout();
+			void close();
+		}
+
+		interface Sink{
+			void write(Buffer sink, long byteCount);
+			Timeout timeout();
+			void close();
+			void flush();
+		}
+
+* Buffer and ByteString hold data
+	Buffer buffer = new Buffer();
+*BufferedSource and BufferedSink
+
+*Hight lever Buffer implements BufferedSource and BufferedSink
+
+*the last class is:
+	class OKio{
+	  static BufferedSource buffer(Source source){}
+	  static BufferedSink buffer(Sink sink){}
+
+	  static source(InputSteam in){}
+	  static sink(OutputStream out){}
+
+	  static Source(Socket socket){}
+	  static Sink(Socket socker){}
+	  ......
+	}
+
+---------okhttp--------------------
+class RequestBody{
+	static RequestBody create(MediaType mediaType,String body){}
+	static RequestBody create(MediaType mediaType,byte[] body){}
+	static RequestBody create(MediaType mediaType,File body){}
+
+	long contentLength();
+	MediaType contenttype();
+	void writeTo(BufferedSink sink);
+
+}
+
+---requestBody.writeto(sink) 
+
+	Scenario 1: There is one requestBody
+		requestBody--->FixedLengthSink----[http request]---->[socket]
+	Scenaro 2: There are two requestBodies
+	    requestBody1  ---FixedLengthSink ---FramedSink 
+                                                      ---[httprequest]
+	    requestBody2  ---FixedLengthSink ---FramedSink
+Example:--sync
+
+OKhttpclient client = new Okhttpclient();
+
+Request request = new Request.Builder().url("www.baidu.com").build();
+
+Response response =client.newCall(request).execute();
+
+System.out.println(response.body().string());
+
+Example:--async
+
+client.newCall(request).enquenen(new Callback(){
+	void onResponse(Response response);
+	void onFailuer(Request request ,IOException exception);
+});
+
+----Three methods provide by ResponseBody-------
+1.get: Response.body();
+2.body.string();
+3.Reader reader = body.charString();
+4.InputStream stream= body.byteStream();
+5.byte[] bytes = body.bytes();
+6.body.source();
+
+---------Moshi--------------------------
+JsonWrite JsonReader----stream
+JsonAdapter<T> adapter =moshi.adapter(T.class);
+adapter .framJson(source) -----object
+
+Sink sink= //........
+----JsonWriter writer = new JsonWriter(sink);
+
+writer .begainObject(); 				|
+writer.name("title");					 |---read object
+write.value("this is a test"); 			  |
+write.name("array")
+write.begainArray();
+write.value("value1");
+write.value("value2");
+write.endArray();
+write.endObject();
+
+write.close();
+
+
+
+
+
+
